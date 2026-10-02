@@ -1,0 +1,9 @@
+# 内嵌 MongoDB（无需本机安装），仅 dev/mongodb-embedded profile 使用。
+# 首次启动会从 fastdl.mongodb.org 下载对应平台的 mongod 二进制并缓存到 ~/.embedmongo。
+# 下载失败时请改用默认的 dev profile（内存存储）或真实 MongoDB。
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: ${PMS_EMBEDDED_MONGO_VERSION:7.0.14}
+        port: 27017

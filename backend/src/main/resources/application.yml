@@ -1,0 +1,147 @@
+spring:
+  application:
+    name: a-simple-pms
+  profiles:
+    # 默认（本地开发，零依赖）：内存数据存储 + 内存缓存/令牌。切到 mongodb / prod 见文件末尾的 profile。
+    active: dev
+  autoconfigure:
+    # 默认排除 flapdoodle 内嵌 MongoDB：不需要任何 Mongo 实例，也就不会去要求
+    # de.flapdoodle.mongodb.embedded.version 或下载 mongod 二进制。
+    # mongodb / prod profile 真的要用 Mongo，所以不在这里排除 Spring Data 的 Mongo 自动配置——
+    # 那几项只在 dev profile 里排除（见文件末尾），避免生产路径被误伤。
+    exclude: de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+  data:
+    redis:
+      host: ${PMS_REDIS_HOST:127.0.0.1}
+      port: ${PMS_REDIS_PORT:6379}
+      password: ${PMS_REDIS_PASSWORD:}
+      database: ${PMS_REDIS_DATABASE:0}
+      timeout: 3s
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 0
+          max-wait: 2s
+
+server:
+  port: ${PMS_SERVER_PORT:8080}
+  servlet:
+    # 通过 PMS_CONTEXT_PATH 可还原旧项目的 /aSimplePms 上下文
+    context-path: ${PMS_CONTEXT_PATH:}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    root: INFO
+    com.jyh.pms: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"
+
+pms:
+  # 当前生效的数据存储：memory（内存）/ mongodb
+  storage: memory
+  # 缓存实现：memory / redis
+  cache: memory
+  # 令牌存储：memory / redis
+  token-store: memory
+  security:
+    # 生产环境务必通过环境变量 PMS_JWT_SECRET 覆盖（至少 32 字节）
+    jwt-secret: ${PMS_JWT_SECRET:pms-dev-only-secret-please-override-in-production-0123456789}
+    issuer: a-simple-pms
+    access-token-ttl: 30m
+    refresh-token-ttl: 7d
+    # 登录失败达到该次数后临时锁定账号
+    max-login-failures: 5
+    lock-duration: 10m
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+  init:
+    # 首次启动写入演示数据（admin 账号、部门、职位、薪资）
+    enabled: true
+    admin-username: admin
+    admin-password: Admin@123
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  # dev 全程用内存存储：不只是排除 flapdoodle 内嵌 Mongo，还要排除 Spring Data MongoDB
+  # 自身的自动配置，否则 Boot 仍会建 MongoClient 去连 localhost:27017——这台机器恰好装了
+  # MongoDB 所以只是多连一次，但按 README 的「零依赖」承诺，没装 MongoDB 的机器上会白报
+  # 一串连接失败日志。三个 Mongo 自动配置一起排除才是真正的零依赖。
+  # 另外排除 UserDetailsServiceAutoConfiguration：本系统是纯 JWT，登录不经过 UserDetailsService，
+  # 不排它 Boot 会打印一条无用的 "Using generated security password"。
+  autoconfigure:
+    exclude:
+      - de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+pms:
+  storage: memory
+  cache: memory
+  token-store: memory
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mongodb
+  data:
+    mongodb:
+      uri: ${PMS_MONGO_URI:mongodb://127.0.0.1:27017/pms}
+      auto-index-creation: true
+  # 注意：不要在这里写 `exclude:` 空值试图「取消」默认排除——空值会被绑定成空列表后
+  # 直接覆盖掉默认的 EmbeddedMongoAutoConfiguration 排除项，flapdoodle 就会接管
+  # MongoDatabaseFactory 并索要 de.flapdoodle.mongodb.embedded.version，反而连不上真实 Mongo。
+  # 连接真实实例只需 uri 正确；确实要用内嵌实例时，显式提供该 version 属性。
+pms:
+  storage: mongodb
+
+---
+# 真实中间件模式：MongoDB + Redis（推荐用 docker-compose 启动）
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    mongodb:
+      uri: ${PMS_MONGO_URI:mongodb://127.0.0.1:27017/pms}
+      auto-index-creation: true
+  cache:
+    type: redis
+pms:
+  storage: mongodb
+  cache: redis
+  token-store: redis
