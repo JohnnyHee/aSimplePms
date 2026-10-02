@@ -1,0 +1,13 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Windows 批处理必须用 CRLF（cmd.exe 对 LF 结尾的批处理兼容性差）
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制文件不做行尾转换
+*.jar binary
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary

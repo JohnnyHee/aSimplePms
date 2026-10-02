@@ -1,0 +1,55 @@
+# 小型人员管理系统（后台）——本地基础设施编排
+#
+# 用法：
+#   docker compose up -d          # 启动 MongoDB + Redis
+#   docker compose ps             # 查看状态
+#   docker compose down           # 停止（保留数据卷）
+#   docker compose down -v        # 停止并删除数据卷
+#
+# 启动后端时切换到「真实中间件」模式（prod profile = mongodb 存储 + redis 缓存/令牌）：
+#   mvn -pl backend spring-boot:run -Dspring-boot.run.profiles=prod
+#
+# Redis 连不上时后端会启动失败，请先 `docker compose ps` 确认两个容器 healthy。
+#
+# 注意：dev（默认 profile）不需要本文件，存储与缓存全部走进程内实现。
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: pms-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: pms
+      # 如需账号密码，取消注释并同步修改后端 spring.data.mongodb.uri
+      # MONGO_INITDB_ROOT_USERNAME: pms
+      # MONGO_INITDB_ROOT_PASSWORD: pms123456
+    volumes:
+      - pms-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: pms-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - pms-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pms-mongo-data:
+  pms-redis-data:

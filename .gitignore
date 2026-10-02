@@ -1,0 +1,53 @@
+# ---- Java / Maven ----
+target/
+*/target/
+*.jar
+*.war
+*.class
+
+# ---- Node / 前端 ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# ---- 日志与临时文件 ----
+*.log
+*.bak
+logs/
+*.tmp
+
+# ---- 环境变量（保留模板，屏蔽真实配置） ----
+.env.local
+.env.*.local
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
+
+# ---- 本地工具链 / 构建辅助产物（不属于源码，体积很大，不要提交） ----
+# 仓库内自带的 Maven、本地依赖仓库、pnpm 与验证脚本目录
+.tools/
+.pnpm-tools/
+.pnpm-store/
+.pnpm-home/
+.pnpm-local/
+.npm-cache/
+.build-logs/
+aSimplePms-master-acl-recovery/

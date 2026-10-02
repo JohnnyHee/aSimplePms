@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.16</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.jyh</groupId>
+    <artifactId>a-simple-pms</artifactId>
+    <version>2.0.0</version>
+    <packaging>pom</packaging>
+    <name>a-simple-pms</name>
+    <description>小型人员管理系统（后台） - Spring Boot 3 + Redis + MongoDB + Spring Security</description>
+
+    <modules>
+        <module>backend</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jjwt.version>0.12.7</jjwt.version>
+        <springdoc.version>2.8.17</springdoc.version>
+        <mongodb-flapdoodle.version>4.33.0</mongodb-flapdoodle.version>
+        <!--
+            Mockito 5 的内联 mock maker 会在启动时“自附加”到当前 JVM。在受限沙箱里
+            外部进程附加被禁止（java.lang.IllegalStateException: Could not self-attach
+            to current VM using external process），测试会全部报 MockitoInitializationException。
+            按 Mockito 官方建议改为显式 -javaagent（见下方 surefire 配置）。
+            版本与 Boot 父 POM 的 byte-buddy 对齐；如需换位置可 -Dmockito.agent.path=...
+        -->
+        <mockito.agent.path>${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</mockito.agent.path>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!--
+                必须放在 jjwt-bom 之前：jjwt-root 0.12.7 的 dependencyManagement 把
+                jackson-databind 钉在 2.12.7.1（其 <jackson.version> 属性），而 Spring Boot
+                3.5.16 的其它 Jackson 组件是 2.21.4。导入型 BOM 会覆盖父 POM 的管理，
+                因此这里显式用父 POM 的 ${jackson-bom.version} 覆盖回来；否则运行期会出现
+                java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/cfg/EnumFeature
+                （Spring Boot 的 JacksonProperties 引用该类，2.12 里不存在）。
+            -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-bom.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-bom</artifactId>
+                <version>${jjwt.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.flapdoodle.embed</groupId>
+                <artifactId>de.flapdoodle.embed.mongo.spring3x</artifactId>
+                <version>${mongodb-flapdoodle.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <!-- 见 properties 中 mockito.agent.path 的说明：避免 Mockito 自附加 -->
+                        <argLine>-javaagent:${mockito.agent.path}</argLine>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

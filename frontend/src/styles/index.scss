@@ -1,0 +1,403 @@
+/**
+ * 全局样式：蓝灰配色 + 布局骨架 + 业务组件类名约定 + Element Plus 变量覆盖。
+ *
+ * 供业务页面复用的类名：
+ *  - .page-container / .page-container__header / .page-container__title / .page-container__desc / .page-container__extra
+ *  - .search-bar / .search-bar__form / .search-bar__actions
+ *  - .table-toolbar（表格上方按钮条）
+ *  - .stat-card / .stat-card__label / .stat-card__value / .stat-card__icon
+ *  - .chart-list / .chart-bar / .chart-bar__head / .chart-bar__track / .chart-bar__fill
+ */
+
+/* ------------------------- 设计变量 ------------------------- */
+:root {
+  --pms-primary: #2f6fed;
+  --pms-primary-hover: #5589f1;
+  --pms-primary-active: #2359c9;
+  --pms-success: #21a675;
+  --pms-warning: #e6a23c;
+  --pms-danger: #e04b4b;
+  --pms-info: #8492a6;
+
+  --pms-bg-page: #f2f4f8;
+  --pms-bg-card: #ffffff;
+  --pms-bg-header: #ffffff;
+  --pms-bg-sidebar: #1f2a3c;
+  --pms-bg-sidebar-hover: #2b3950;
+  --pms-bg-sidebar-active: #2f6fed;
+
+  --pms-text-primary: #24324a;
+  --pms-text-regular: #4a5a75;
+  --pms-text-secondary: #8492a6;
+  --pms-text-inverse: #e8eef8;
+
+  --pms-border: #dfe4ec;
+  --pms-border-light: #eceff5;
+
+  --pms-radius: 8px;
+  --pms-radius-sm: 4px;
+  --pms-shadow-card: 0 1px 4px rgba(31, 42, 60, 0.08);
+  --pms-shadow-header: 0 1px 6px rgba(31, 42, 60, 0.08);
+
+  --pms-header-height: 56px;
+  --pms-sidebar-width: 220px;
+  --pms-sidebar-width-collapsed: 64px;
+
+  /* Element Plus 主题变量覆盖 */
+  --el-color-primary: #2f6fed;
+  --el-color-primary-light-3: #6b98f2;
+  --el-color-primary-light-5: #97b6f6;
+  --el-color-primary-light-7: #c3d4fa;
+  --el-color-primary-light-8: #d9e3fc;
+  --el-color-primary-light-9: #eaf1fe;
+  --el-color-primary-dark-2: #2359c9;
+
+  --el-color-success: #21a675;
+  --el-color-warning: #e6a23c;
+  --el-color-danger: #e04b4b;
+  --el-color-error: #e04b4b;
+  --el-color-info: #8492a6;
+
+  --el-text-color-primary: #24324a;
+  --el-text-color-regular: #4a5a75;
+  --el-text-color-secondary: #8492a6;
+  --el-border-color: #dfe4ec;
+  --el-border-color-light: #eceff5;
+  --el-border-radius-base: 6px;
+  --el-font-size-base: 14px;
+}
+
+/* 深色主题（侧边栏与页面底色反转，供 app store 切换） */
+html[data-theme='dark'] {
+  --pms-bg-page: #151a24;
+  --pms-bg-card: #1e2635;
+  --pms-bg-header: #1e2635;
+  --pms-bg-sidebar: #131824;
+  --pms-text-primary: #e6ebf5;
+  --pms-text-regular: #b9c3d4;
+  --pms-text-secondary: #8492a6;
+  --pms-border: #2c3648;
+  --pms-border-light: #26303f;
+  --el-bg-color: #1e2635;
+  --el-bg-color-page: #151a24;
+  --el-text-color-primary: #e6ebf5;
+  --el-text-color-regular: #b9c3d4;
+  --el-border-color: #2c3648;
+  --el-border-color-light: #26303f;
+  --el-fill-color-blank: #1e2635;
+}
+
+/* ------------------------- 基础重置 ------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    Arial, sans-serif;
+  font-size: 14px;
+  color: var(--pms-text-primary);
+  background-color: var(--pms-bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--pms-primary);
+  text-decoration: none;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(132, 146, 166, 0.4);
+  border-radius: 4px;
+
+  &:hover {
+    background-color: rgba(132, 146, 166, 0.7);
+  }
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* ------------------------- 页面外壳 ------------------------- */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 28px;
+    color: var(--pms-text-primary);
+  }
+
+  &__desc {
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--pms-text-secondary);
+  }
+
+  &__extra {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* 卡片化的白色面板 */
+.pms-card {
+  padding: 16px;
+  background-color: var(--pms-bg-card);
+  border: 1px solid var(--pms-border-light);
+  border-radius: var(--pms-radius);
+  box-shadow: var(--pms-shadow-card);
+}
+
+.pms-card--flat {
+  box-shadow: none;
+}
+
+/* 表格上方工具条 */
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* ------------------------- 查询区 ------------------------- */
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 16px 0;
+  margin-bottom: 16px;
+  background-color: var(--pms-bg-card);
+  border: 1px solid var(--pms-border-light);
+  border-radius: var(--pms-radius);
+  box-shadow: var(--pms-shadow-card);
+
+  &__form {
+    flex: 1;
+    min-width: 0;
+
+    .el-form-item {
+      margin-right: 16px;
+      margin-bottom: 16px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+}
+
+/* ------------------------- 统计卡片 ------------------------- */
+.stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background-color: var(--pms-bg-card);
+  border: 1px solid var(--pms-border-light);
+  border-radius: var(--pms-radius);
+  box-shadow: var(--pms-shadow-card);
+
+  &__label {
+    font-size: 13px;
+    color: var(--pms-text-secondary);
+  }
+
+  &__value {
+    margin-top: 8px;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 30px;
+    color: var(--pms-text-primary);
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    color: #ffffff;
+    background-color: var(--pms-primary);
+    border-radius: 12px;
+  }
+
+  &--success &__icon {
+    background-color: var(--pms-success);
+  }
+
+  &--warning &__icon {
+    background-color: var(--pms-warning);
+  }
+
+  &--danger &__icon {
+    background-color: var(--pms-danger);
+  }
+}
+
+/* ------------------------- 纯 CSS 条形图 ------------------------- */
+.chart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chart-bar {
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--pms-text-regular);
+  }
+
+  &__value {
+    font-weight: 600;
+    color: var(--pms-text-primary);
+  }
+
+  &__track {
+    height: 12px;
+    overflow: hidden;
+    background-color: var(--pms-border-light);
+    border-radius: 6px;
+  }
+
+  &__fill {
+    height: 100%;
+    background-image: linear-gradient(90deg, #2f6fed, #6b98f2);
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+}
+
+/* ------------------------- 卡片头部 ------------------------- */
+.pms-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pms-text-primary);
+}
+
+.pms-card__body {
+  min-height: 0;
+}
+
+/* ------------------------- 工具类 ------------------------- */
+.flex {
+  display: flex;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.text-secondary {
+  color: var(--pms-text-secondary);
+}
+
+.text-danger {
+  color: var(--pms-danger);
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------- 路由切换动画 ------------------------- */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+}
